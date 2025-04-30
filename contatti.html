@@ -2,91 +2,91 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Mini Clash</title>
+  <title>Gioco di Guerra</title>
   <style>
-    body { font-family: sans-serif; text-align: center; }
-    #board {
-      display: grid;
-      grid-template-rows: repeat(8, 60px);
-      grid-template-columns: repeat(3, 60px);
-      gap: 2px;
-      margin: 20px auto;
-      width: max-content;
-    }
-    .cell {
-      width: 60px;
-      height: 60px;
-      background-color: #e0e0e0;
-      border: 1px solid #999;
+    body { font-family: Arial, sans-serif; background: #111; color: white; text-align: center; }
+    #battlefield {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
+      justify-content: space-between;
+      width: 600px;
+      height: 100px;
+      border: 3px solid #444;
+      margin: 40px auto;
+      position: relative;
+      background: #222;
     }
-    .unit { color: white; font-size: 14px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
-    .knight { background-color: #007bff; }
-    .archer { background-color: #28a745; }
-    .tower { background-color: #6c757d; color: white; }
-    .controls button { margin: 5px; padding: 10px 20px; }
+    .unit {
+      width: 20px;
+      height: 20px;
+      position: absolute;
+      top: 40px;
+      border-radius: 50%;
+    }
+    .blue { background: #00f; }
+    .red { background: #f00; }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px;
+    }
   </style>
 </head>
 <body>
 
-  <h1>Mini Clash</h1>
-  <div class="controls">
-    <button onclick="spawnUnit('knight')">Schiera Cavaliere</button>
-    <button onclick="spawnUnit('archer')">Schiera Arciere</button>
+  <h1>Gioco di Guerra</h1>
+  <div>
+    <button onclick="spawnUnit('blue')">Invia Soldato Blu</button>
+    <button onclick="spawnUnit('red')">Invia Soldato Rosso</button>
   </div>
-  <div id="board"></div>
+
+  <div id="battlefield"></div>
 
   <script>
-    const board = document.getElementById("board");
-    const rows = 8, cols = 3;
-    const grid = [];
-
-    // Crea la griglia
-    for (let r = 0; r < rows; r++) {
-      grid[r] = [];
-      for (let c = 0; c < cols; c++) {
-        const cell = document.createElement("div");
-        cell.classList.add("cell");
-        if (r === 0 && c === 1) {
-          cell.textContent = "🏰";
-          cell.classList.add("tower");
-        }
-        if (r === rows - 1 && c === 1) {
-          cell.textContent = "🏰";
-          cell.classList.add("tower");
-        }
-        board.appendChild(cell);
-        grid[r][c] = cell;
-      }
-    }
-
+    const battlefield = document.getElementById('battlefield');
     const units = [];
 
-    function spawnUnit(type) {
+    function spawnUnit(team) {
       const unit = {
-        type,
-        row: rows - 2,
-        col: 1,
-        el: document.createElement("div")
+        team,
+        position: team === 'blue' ? 0 : 580,
+        element: document.createElement('div')
       };
-      unit.el.classList.add("unit", type);
-      unit.el.textContent = type === "knight" ? "K" : "A";
-      grid[unit.row][unit.col].appendChild(unit.el);
+      unit.element.classList.add('unit', team);
+      unit.element.style.left = unit.position + 'px';
+      battlefield.appendChild(unit.element);
       units.push(unit);
     }
 
-    function moveUnits() {
-      for (const unit of units) {
-        if (unit.row > 1) {
-          grid[unit.row][unit.col].removeChild(unit.el);
-          unit.row -= 1;
-          grid[unit.row][unit.col].appendChild(unit.el);
+    function update() {
+      for (let i = units.length - 1; i >= 0; i--) {
+        const unit = units[i];
+        if (unit.team === 'blue') unit.position += 2;
+        else unit.position -= 2;
+        unit.element.style.left = unit.position + 'px';
+
+        // Controllo collisione
+        for (let j = units.length - 1; j >= 0; j--) {
+          const other = units[j];
+          if (unit !== other && unit.team !== other.team) {
+            if (Math.abs(unit.position - other.position) < 20) {
+              // Rimuove entrambi i soldati
+              battlefield.removeChild(unit.element);
+              battlefield.removeChild(other.element);
+              units.splice(i, 1);
+              units.splice(j, 1);
+              break;
+            }
+          }
         }
       }
     }
+
+    setInterval(update, 50);
+  </script>
+
+</body>
+</html>
+
 
     setInterval(moveUnits, 1000);
   </script>
